@@ -19,10 +19,10 @@ pub struct Handler;
 #[async_trait]
 impl EventHandler for Handler {
   async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
-    if let Interaction::ApplicationCommand(command) = interaction {
+    if let Interaction::ApplicationCommand(mut command) = interaction {
       let content = match command.data.name.as_str() {
-        "verify" => verify_ticket::run(&ctx, &command).await,
-        "register" => register_server::run(&ctx, &command).await,
+        "verify" => verify_ticket::run(&ctx, &command).await.unwrap_or("Error".to_string()),
+        "register" => register_server::run(&ctx, &mut command).await.unwrap_or("Error".to_string()),
         _ => "not implemented :(".to_string(),
       };
 
