@@ -1,9 +1,7 @@
 use std::env;
 use serenity::prelude::*;
-use serenity::framework::standard::{StandardFramework};
 use ticketland_pass_bot::{
   utils::store::Store,
-  cmd::{GENERAL_GROUP},
   handler::Handler,
 };
 
@@ -20,17 +18,12 @@ async fn main() {
 
   let store = Store::new().await;
 
-  let framework = StandardFramework::new()
-  .configure(|c| c.prefix("~"))
-  .group(&GENERAL_GROUP);
-
   let intents = GatewayIntents::GUILDS
   | GatewayIntents::GUILD_MESSAGES
   | GatewayIntents::MESSAGE_CONTENT;
 
   let mut client = Client::builder(store.config.discord_token, intents)
   .event_handler(Handler)
-  .framework(framework)
   .await
   .expect("Error creating client");
 

@@ -1,11 +1,16 @@
 use serenity::prelude::*;
-use serenity::model::channel::Message;
-use serenity::framework::standard::macros::{command};
-use serenity::framework::standard::{CommandResult};
+use serenity::builder::CreateApplicationCommand;
+use serenity::{
+  model::{
+    application::interaction::application_command::{ApplicationCommandInteraction},
+  },
+};
 
-#[command]
-pub async fn verify(ctx: &Context, msg: &Message) -> CommandResult {
-  msg.reply(ctx, "Pong!").await?;
+pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
+  command.name("verify").description("Verify pass")
+}
 
-  Ok(())
+pub async fn run(_ctx: &Context, _cmd: &ApplicationCommandInteraction) -> String {
+  // TODO: load the event id associated with the Guild from which this channel was invoked
+  "Verify your pass https://apps.ticketland.io/discord".to_string()
 }
