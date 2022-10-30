@@ -1078,6 +1078,7 @@ dependencies = [
  "eyre",
  "serenity",
  "tokio",
+ "tracing",
 ]
 
 [[package]]
