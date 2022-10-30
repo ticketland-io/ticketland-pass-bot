@@ -1,3 +1,4 @@
+use std::env;
 use serenity::prelude::*;
 use serenity::framework::standard::{StandardFramework};
 use ticketland_pass_bot::{
@@ -8,6 +9,10 @@ use ticketland_pass_bot::{
 
 #[tokio::main]
 async fn main() {
+  if env::var("ENV").unwrap() == "development" {
+    dotenv::from_filename(".env").expect("cannot load env from a file");
+  }
+
   // Initialize the logger to use environment variables.
   // In this case, a good default is setting the environment variable
   // `RUST_LOG` to `debug`.
@@ -16,7 +21,7 @@ async fn main() {
   let store = Store::new().await;
 
   let framework = StandardFramework::new()
-  .configure(|c| c.prefix("~")) // set the bot's prefix to "~"
+  .configure(|c| c.prefix("~"))
   .group(&GENERAL_GROUP);
 
   let intents = GatewayIntents::GUILDS
