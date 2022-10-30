@@ -35,16 +35,12 @@ async fn main() {
   let client = Arc::new(Mutex::new(client));
 
   tokio::spawn(async move {
-    loop {
-      let client_clone = Client::builder(store.config.discord_token.clone(), intents)
-      .event_handler(Handler)
-      .await
-      .expect("Error creating client");
-      
-      if let Err(error) = role_manager::start(client_clone).await {
-        error!("Error in role manager. Resuming it {:?}", error);
-      }
-    }
+    let client_clone = Client::builder(store.config.discord_token.clone(), intents)
+    .event_handler(Handler)
+    .await
+    .expect("Error creating client");
+    
+    let _ = role_manager::start(client_clone).await;
   });
   
   // start listening for events by starting a single shard

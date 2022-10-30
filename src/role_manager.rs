@@ -10,7 +10,6 @@ pub async fn start(client: Client) -> Result<()> {
   let user_id = 113267696933535744;
   let role_name = "ticketland-pass";
 
-  // We can load th
   let role = client.cache_and_http.http
   .get_guild_roles(guild_id)
   .await?
