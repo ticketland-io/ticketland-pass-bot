@@ -2,6 +2,7 @@ use std::{
   env,
   sync::Arc,
 };
+use tracing::error;
 use tokio::sync::Mutex;
 use serenity::prelude::*;
 use ticketland_pass_bot::{
@@ -32,19 +33,23 @@ async fn main() {
     .await
     .expect("Error creating client");
   let client = Arc::new(Mutex::new(client));
-  
-  let client_clone = Client::builder(store.config.discord_token, intents)
-  .event_handler(Handler)
-  .await
-  .expect("Error creating client");
 
   tokio::spawn(async move {
-    role_manager::start(client_clone).await;
+    loop {
+      let client_clone = Client::builder(store.config.discord_token.clone(), intents)
+      .event_handler(Handler)
+      .await
+      .expect("Error creating client");
+      
+      if let Err(error) = role_manager::start(client_clone).await {
+        error!("Error in role manager. Resuming it {:?}", error);
+      }
+    }
   });
   
   // start listening for events by starting a single shard
   let mut client = client.lock().await;
   if let Err(error) = client.start().await {
-    println!("An error occurred while running the client: {:?}", error);
+    error!("An error occurred while running the client: {:?}", error);
   }
 }
