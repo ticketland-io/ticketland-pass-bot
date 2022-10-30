@@ -8,14 +8,15 @@ use serenity::{
 };
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
-  command.name("register").description("A ping command")
+  command.name("register").description("Register guild")
 }
 
 /// This will be called by the admin of the Guild. It will basically load the information we need.
 /// This includes all the channels for the given guild as well as all roles
 pub async fn run(ctx: &Context, cmd: &mut ApplicationCommandInteraction) -> Result<String> {
   let member = cmd.member.take();
-  let is_admin = member.ok_or(Report::msg("error"))?
+  let is_admin = member
+  .ok_or(Report::msg("error"))?
   .permissions.ok_or(Report::msg("error"))?
   .administrator();
 
@@ -27,6 +28,7 @@ pub async fn run(ctx: &Context, cmd: &mut ApplicationCommandInteraction) -> Resu
   let _guild_channels = ctx.cache.guild_channels(cmd.guild_id.unwrap()).unwrap();
   let _guild_roles = ctx.cache.guild_roles(cmd.guild_id.unwrap()).unwrap();
 
+  println!("{:?}", _guild_roles);
 
   Ok("Record updated".to_string())
 }

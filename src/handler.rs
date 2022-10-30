@@ -37,16 +37,16 @@ impl EventHandler for Handler {
         error!("Cannot respond to slash command: {}", why);
       }
     }
+  }
+
+  async fn ready(&self, ctx: Context, ready: Ready) {
+    info!("Connected as {}", ready.user.name);
 
     let _ = Command::create_global_application_command(&ctx.http, |command| {
       verify_ticket::register(command);
       register_server::register(command)
     })
     .await;
-  }
-
-  async fn ready(&self, _: Context, ready: Ready) {
-    info!("Connected as {}", ready.user.name);
   }
 
   async fn resume(&self, _: Context, _: ResumedEvent) {

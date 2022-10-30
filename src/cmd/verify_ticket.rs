@@ -1,4 +1,4 @@
-use eyre::Result;
+use eyre::{Result, Report};
 use serenity::prelude::*;
 use serenity::builder::CreateApplicationCommand;
 use serenity::{
@@ -11,7 +11,11 @@ pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicatio
   command.name("verify").description("Verify pass")
 }
 
-pub async fn run(_: &Context, _: &ApplicationCommandInteraction) -> Result<String> {
+pub async fn run(_: &Context, cmd: &ApplicationCommandInteraction) -> Result<String> {
+  // store this in Redis
+  let _guild_id = cmd.guild_id.ok_or(Report::msg("error"))?;
+  let _user_id = cmd.user.id;
+
   // TODO: load the event id associated with the Guild from which this channel was invoked
   Ok("Verify your pass https://apps.ticketland.io/discord".to_string())
 }
