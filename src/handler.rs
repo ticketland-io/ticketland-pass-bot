@@ -1,4 +1,4 @@
-use tracing::{error, info};
+use tracing::{info};
 use serenity::async_trait;
 use serenity::prelude::*;
 use serenity::{
