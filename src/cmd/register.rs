@@ -98,11 +98,12 @@ impl RegisterCmd {
       icon: guild.icon,
     };
 
-    self.add_guild(session_id, guild).await?;
+    self.add_guild(session_id.clone(), guild).await?;
 
     Ok(format!(
-      "{}/register?&guild_id={}&channel_id={}",
+      "{}/register?&session_id={}guild_id={}&channel_id={}",
       self.store.config.ticketland_pass_dapp,
+      session_id,
       guild_id.to_string(),
       cmd.channel_id.to_string(),
     ))
