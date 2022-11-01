@@ -6,6 +6,7 @@ use serenity::{
     application::interaction::application_command::{ApplicationCommandInteraction},
   },
 };
+use ticketland_crypto::utils::id::Id;
 
 pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
   command.name("register").description("Register guild")
