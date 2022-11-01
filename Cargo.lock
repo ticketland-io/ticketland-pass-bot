@@ -940,8 +940,8 @@ dependencies = [
 
 [[package]]
 name = "common-data"
-version = "0.3.28"
-source = "git+https://github.com/ticketland-io/common-rust#02376e2725e5b2fa561b51d5682e9fbe55bc5c52"
+version = "0.3.29"
+source = "git+https://github.com/ticketland-io/common-rust#2f6f237dc23577b7f29e8382d601c5503453e153"
 dependencies = [
  "actix",
  "bolt-client",
@@ -3640,7 +3640,7 @@ dependencies = [
 [[package]]
 name = "ticketland-core"
 version = "0.2.13"
-source = "git+https://github.com/ticketland-io/common-rust#02376e2725e5b2fa561b51d5682e9fbe55bc5c52"
+source = "git+https://github.com/ticketland-io/common-rust#2f6f237dc23577b7f29e8382d601c5503453e153"
 dependencies = [
  "actix",
  "actix-multipart",
@@ -3705,8 +3705,8 @@ dependencies = [
 
 [[package]]
 name = "ticketland-pass-common-data"
-version = "0.1.20"
-source = "git+https://github.com/ticketland-io/ticketland-pass-common#6a472aa31e12a079078b5f56674f0832df6f171f"
+version = "0.1.21"
+source = "git+https://github.com/ticketland-io/ticketland-pass-common#545644beee95cd40dd069e3ea193da2296c0644e"
 dependencies = [
  "bolt-client",
  "bolt-proto",

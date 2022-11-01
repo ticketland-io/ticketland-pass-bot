@@ -105,6 +105,7 @@ impl RegisterCmd {
       id: guild_id.to_string(),
       name: guild.name,
       icon: guild.icon,
+      ..Default::default()
     };
 
     self.add_guild(discord_uid, guild).await?;
