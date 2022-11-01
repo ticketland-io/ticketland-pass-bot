@@ -22,21 +22,23 @@ async fn main() {
   // `RUST_LOG` to `debug`.
   tracing_subscriber::fmt::init();
 
-  let store = Store::new().await;
+  let store = Arc::new(Store::new().await);
 
   let intents = GatewayIntents::GUILDS
   | GatewayIntents::GUILD_MESSAGES
   | GatewayIntents::MESSAGE_CONTENT;
 
+  let handler = Handler::new(Arc::clone(&store));
   let client = Client::builder(store.config.discord_token.clone(), intents)
-    .event_handler(Handler)
+    .event_handler(handler)
     .await
     .expect("Error creating client");
   let client = Arc::new(Mutex::new(client));
 
+  let handler = Handler::new(Arc::clone(&store));
   tokio::spawn(async move {
     let client_clone = Client::builder(store.config.discord_token.clone(), intents)
-    .event_handler(Handler)
+    .event_handler(handler)
     .await
     .expect("Error creating client");
     

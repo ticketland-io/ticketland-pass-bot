@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use tracing::{error, info};
 use serenity::prelude::*;
 use serenity::async_trait;
@@ -9,20 +10,35 @@ use serenity::{
     gateway::Ready,
   },
 };
-use crate::cmd::{
-  verify_ticket,
-  register_server,
+use crate::{
+  utils::store::Store,
+  cmd::{
+    verify_ticket::VerifyCmd,
+    register::RegisterCmd,
+  },  
 };
 
-pub struct Handler;
+pub struct Handler {
+  register_cmd: RegisterCmd,
+  verify_cmd: VerifyCmd,
+}
+
+impl Handler {
+  pub fn new(store: Arc<Store>) -> Self {
+    Self {
+      register_cmd: RegisterCmd::new(Arc::clone(&store)),
+      verify_cmd: VerifyCmd::new(Arc::clone(&store)),
+    }
+  }
+}
 
 #[async_trait]
 impl EventHandler for Handler {
   async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
     if let Interaction::ApplicationCommand(mut command) = interaction {
       let content = match command.data.name.as_str() {
-        "verify" => verify_ticket::run(&ctx, &command).await.unwrap_or("Error".to_string()),
-        "register" => register_server::run(&ctx, &mut command).await.unwrap_or("Error".to_string()),
+        "register" => self.register_cmd.run(&ctx, &mut command).await.unwrap_or("Error".to_string()),
+        "verify" => self.verify_cmd.run(&ctx, &command).await.unwrap_or("Error".to_string()),
         _ => "not implemented :(".to_string(),
       };
 
@@ -43,8 +59,8 @@ impl EventHandler for Handler {
     info!("Connected as {}", ready.user.name);
 
     let _ = Command::create_global_application_command(&ctx.http, |command| {
-      verify_ticket::register(command);
-      register_server::register(command)
+      RegisterCmd::register(command);
+      VerifyCmd::register(command)
     })
     .await;
   }
