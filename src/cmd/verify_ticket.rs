@@ -10,12 +10,12 @@ use serenity::{
 use crate::utils::store::Store;
 
 pub struct VerifyCmd {
-  _store: Arc<Store>,
+  store: Arc<Store>,
 }
 
 impl VerifyCmd {
   pub fn new(store: Arc<Store>) -> Self {
-    Self {_store: store}
+    Self {store}
   }
 
   pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
@@ -23,12 +23,16 @@ impl VerifyCmd {
   }
 
   pub async fn run(&self, _: &Context, cmd: &ApplicationCommandInteraction) -> Result<String> {
-    // store this in Redis
-    let _guild_id = cmd.guild_id.ok_or(Report::msg("error"))?;
-    let _user_id = cmd.user.id;
-  
-    // TODO: load the event id associated with the Guild from which this channel was invoked
-    Ok("Verify your pass https://apps.ticketland.io/discord".to_string())
+    let guild_id = cmd.guild_id.ok_or(Report::msg("error"))?;
+    let discord_uid = cmd.user.id;
+
+    Ok(format!(
+      "{}/verify?&discord_uid={}&guild_id={}&channel_id={}",
+      self.store.config.ticketland_pass_dapp,
+      discord_uid,
+      guild_id.to_string(),
+      cmd.channel_id.to_string(),
+    ))
   }
   
 }
