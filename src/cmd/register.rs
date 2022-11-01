@@ -84,7 +84,7 @@ impl RegisterCmd {
     }
 
     let guild_id = cmd.guild_id.ok_or(Report::msg("error"))?;
-    if self.is_registered(member.user.id.to_string(), guild_id.to_string()).await.is_err() {
+    if self.is_registered(member.user.id.to_string(), guild_id.to_string()).await.is_ok() {
       return Ok("You have already registered this Server".to_string())
     }
     

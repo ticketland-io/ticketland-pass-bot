@@ -8,12 +8,13 @@ license = "BUSL-1.1"
 
 [dependencies]
 actix = "0.13.0"
+actix-rt = "2.2"
 dotenv = "0.15"
 eyre = "0.6.8"
 serenity = { version = "0.11.5", default-features = false, features = ["client", "gateway", "rustls_backend", "model", "cache"] }
 ticketland-core = { git = "https://github.com/ticketland-io/common-rust", version = "0.2.13"  }
 common-data = { git = "https://github.com/ticketland-io/common-rust", version = "0.3.27"  }
-ticketland-pass-common-data = { git = "https://github.com/ticketland-io/ticketland-pass-common", version = "0.1.8"  }
+ticketland-pass-common-data = { git = "https://github.com/ticketland-io/ticketland-pass-common", version = "0.1.9"  }
 ticketland-crypto = { git = "https://github.com/ticketland-io/common-rust", version = "0.1.11" }
 tokio = { version = "1.14.1", features = ["rt-multi-thread"]}
 tracing = "0.1.19"
