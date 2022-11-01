@@ -11,10 +11,13 @@ use common_data::{
   helpers::{send_read, send_write},
 };
 use ticketland_pass_common_data::{
-  models::guild::Guild,
+  models::{
+    account::Account,
+    guild::Guild,
+  },
   repositories::{
-    guild::{add_user_guild, get_user_guild},
-    account::create_account,
+    guild::add_user_guild,
+    account::{create_account, read_account_by_discord_uid},
   },
 };
 use ticketland_crypto::utils::id::Id;
@@ -33,17 +36,22 @@ impl RegisterCmd {
     command.name("register").description("Register guild")
   }
 
-  async fn is_registered(&self, discord_uid: String, guild_id: String) -> Result<Guild> {
-    let (query, db_query_params) = get_user_guild(discord_uid, guild_id);
+  async fn is_registered(&self, discord_uid: String) -> Result<()> {
+    let (query, db_query_params) = read_account_by_discord_uid(discord_uid);
 
-    let guild = send_read(
+    let account = send_read(
       Arc::clone(&self.store.neo4j),
       query,
       db_query_params,
     ).await
-    .map(TryInto::<Guild>::try_into)??;
+    .map(TryInto::<Account>::try_into)??;
 
-    Ok(guild)
+    // If eutopic_uid exists it means that user has already registered
+    if account.eutopic_uid.is_some() {
+      return Ok(())
+    }
+    
+    Err(Report::msg("error"))
   }
 
   async fn create_new_account(&self, discord_uid: String) -> Result<String> {
@@ -85,7 +93,7 @@ impl RegisterCmd {
     }
 
     let guild_id = cmd.guild_id.ok_or(Report::msg("error"))?;
-    if self.is_registered(discord_uid.clone(), guild_id.to_string()).await.is_ok() {
+    if self.is_registered(discord_uid.clone()).await.is_ok() {
       return Ok("You have already registered this Server".to_string())
     }
     
