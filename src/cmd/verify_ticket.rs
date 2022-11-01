@@ -10,12 +10,12 @@ use serenity::{
 use crate::utils::store::Store;
 
 pub struct VerifyCmd {
-  store: Arc<Store>,
+  _store: Arc<Store>,
 }
 
 impl VerifyCmd {
   pub fn new(store: Arc<Store>) -> Self {
-    Self {store}
+    Self {_store: store}
   }
 
   pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {

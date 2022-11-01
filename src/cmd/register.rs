@@ -11,7 +11,11 @@ use common_data::{
   helpers::{send_read, send_write},
 };
 use ticketland_pass_common_data::{
-  repositories::account::create_account,
+  models::guild::Guild,
+  repositories::{
+    guild::add_user_guild,
+    account::create_account,
+  },
 };
 use ticketland_crypto::utils::id::Id;
 use crate::utils::store::Store;
@@ -33,22 +37,32 @@ impl RegisterCmd {
     let session_id = Id::new();
     let (query, db_query_params) = create_account(discord_uid, session_id.to_string());
     
-    // send_write(
-    //   Arc::clone(&self.store.neo4j),
-    //   query,
-    //   db_query_params,
-    // ).await
+    send_write(
+      Arc::clone(&self.store.neo4j),
+      query,
+      db_query_params,
+    ).await?;
 
-    todo!()
+    Ok(session_id.to_string())
   }
   
+  async fn add_guild(&self, discord_uid: String, guild: Guild) -> Result<()> {
+    let (query, db_query_params) = add_user_guild(discord_uid, guild);
+    
+    send_write(
+      Arc::clone(&self.store.neo4j),
+      query,
+      db_query_params,
+    ).await?;
+
+    Ok(())
+  }
 
   /// This will be called by the admin of the Guild. It will basically load the information we need.
   /// This includes all the channels for the given guild as well as all roles
   pub async fn run(&self, ctx: &Context, cmd: &mut ApplicationCommandInteraction) -> Result<String> {
-    let member = cmd.member.take();
+    let member = cmd.member.take().ok_or(Report::msg("error"))?;
     let is_admin = member
-    .ok_or(Report::msg("error"))?
     .permissions.ok_or(Report::msg("error"))?
     .administrator();
 
@@ -56,11 +70,18 @@ impl RegisterCmd {
       return Err(Report::msg("error"))
     }
 
-    // TODO: store guild_channels and guild_roles in the DB
-    let _guild_channels = ctx.cache.guild_channels(cmd.guild_id.unwrap()).unwrap();
-    let _guild_roles = ctx.cache.guild_roles(cmd.guild_id.unwrap()).unwrap();
+    let session_id = self.create_new_account(member.user.id.to_string()).await?;
 
-    println!("{:?}", _guild_roles);
+    // save guild
+    let guild_id = cmd.guild_id.ok_or(Report::msg("error"))?;
+    let guild = ctx.http.get_guild(guild_id.0).await?;
+    let guild = Guild {
+      id: guild_id.to_string(),
+      name: guild.name,
+      icon: guild.icon,
+    };
+
+    self.add_guild(session_id, guild).await?;
 
     Ok("Record updated".to_string())
   }
