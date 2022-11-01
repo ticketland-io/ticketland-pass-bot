@@ -75,6 +75,7 @@ impl RegisterCmd {
   /// This includes all the channels for the given guild as well as all roles
   pub async fn run(&self, ctx: &Context, cmd: &mut ApplicationCommandInteraction) -> Result<String> {
     let member = cmd.member.take().ok_or(Report::msg("error"))?;
+    let discord_uid = member.user.id.to_string();
     let is_admin = member
     .permissions.ok_or(Report::msg("error"))?
     .administrator();
@@ -84,11 +85,11 @@ impl RegisterCmd {
     }
 
     let guild_id = cmd.guild_id.ok_or(Report::msg("error"))?;
-    if self.is_registered(member.user.id.to_string(), guild_id.to_string()).await.is_ok() {
+    if self.is_registered(discord_uid.clone(), guild_id.to_string()).await.is_ok() {
       return Ok("You have already registered this Server".to_string())
     }
     
-    let session_id = self.create_new_account(member.user.id.to_string()).await?;
+    let session_id = self.create_new_account(discord_uid.clone()).await?;
 
     // save guild
     let guild = ctx.http.get_guild(guild_id.0).await?;
@@ -98,10 +99,10 @@ impl RegisterCmd {
       icon: guild.icon,
     };
 
-    self.add_guild(session_id.clone(), guild).await?;
+    self.add_guild(discord_uid, guild).await?;
 
     Ok(format!(
-      "{}/register?&session_id={}guild_id={}&channel_id={}",
+      "{}/register?&session_id={}&guild_id={}&channel_id={}",
       self.store.config.ticketland_pass_dapp,
       session_id,
       guild_id.to_string(),
