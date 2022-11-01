@@ -3705,8 +3705,8 @@ dependencies = [
 
 [[package]]
 name = "ticketland-pass-common-data"
-version = "0.1.9"
-source = "git+https://github.com/ticketland-io/ticketland-pass-common#3f1fde583094bc91f1ac00c6c1424221b3bdbc03"
+version = "0.1.13"
+source = "git+https://github.com/ticketland-io/ticketland-pass-common#059d24c9452e593620a211ff61ad01e5fa80a848"
 dependencies = [
  "bolt-client",
  "bolt-proto",
