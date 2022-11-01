@@ -10,6 +10,7 @@ pub struct Config {
   pub neo4j_username: String,
   pub neo4j_password: String,
   pub neo4j_database: Option<String>,
+  pub ticketland_pass_dapp: String,
 }
 
 impl Config {
@@ -25,6 +26,7 @@ impl Config {
         neo4j_username: env::var("NEO4J_USERNAME").unwrap(),
         neo4j_password: env::var("NEO4J_PASSWORD").unwrap(),
         neo4j_database: env::var("NEO4J_DATABASE").ok(),
+        ticketland_pass_dapp: env::var("TICKETLAND_PASS_DAPP").unwrap(),
       }
     )
   }

@@ -13,7 +13,7 @@ use common_data::{
 use ticketland_pass_common_data::{
   models::guild::Guild,
   repositories::{
-    guild::add_user_guild,
+    guild::{add_user_guild, get_user_guild},
     account::create_account,
   },
 };
@@ -31,6 +31,19 @@ impl RegisterCmd {
 
   pub fn register(command: &mut CreateApplicationCommand) -> &mut CreateApplicationCommand {
     command.name("register").description("Register guild")
+  }
+
+  async fn is_registered(&self, discord_uid: String, guild_id: String) -> Result<Guild> {
+    let (query, db_query_params) = get_user_guild(discord_uid, guild_id);
+
+    let guild = send_read(
+      Arc::clone(&self.store.neo4j),
+      query,
+      db_query_params,
+    ).await
+    .map(TryInto::<Guild>::try_into)??;
+
+    Ok(guild)
   }
 
   async fn create_new_account(&self, discord_uid: String) -> Result<String> {
@@ -70,10 +83,14 @@ impl RegisterCmd {
       return Err(Report::msg("error"))
     }
 
+    let guild_id = cmd.guild_id.ok_or(Report::msg("error"))?;
+    if self.is_registered(member.user.id.to_string(), guild_id.to_string()).await.is_err() {
+      return Ok("You have already registered this Server".to_string())
+    }
+    
     let session_id = self.create_new_account(member.user.id.to_string()).await?;
 
     // save guild
-    let guild_id = cmd.guild_id.ok_or(Report::msg("error"))?;
     let guild = ctx.http.get_guild(guild_id.0).await?;
     let guild = Guild {
       id: guild_id.to_string(),
@@ -83,6 +100,11 @@ impl RegisterCmd {
 
     self.add_guild(session_id, guild).await?;
 
-    Ok("Record updated".to_string())
+    Ok(format!(
+      "{}/register?&guild_id={}&channel_id={}",
+      self.store.config.ticketland_pass_dapp,
+      guild_id.to_string(),
+      cmd.channel_id.to_string(),
+    ))
   }
 }
