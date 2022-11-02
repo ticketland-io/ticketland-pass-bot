@@ -6,9 +6,11 @@ use actix::prelude::*;
 use tracing::error;
 use tokio::sync::Mutex;
 use serenity::prelude::*;
+use amqp_helpers::consumer::consumer_runner::ConsumerRunner;
 use ticketland_pass_bot::{
   utils::store::Store,
-  handler::Handler
+  handler::Handler,
+  queue_consumer::role_handler::RoleHandler,
 };
 
 fn main() {
@@ -37,6 +39,21 @@ fn main() {
       .expect("Error creating client");
     let client = Arc::new(Mutex::new(client));
   
+    tokio::spawn(async move {
+      let client = Client::builder(store.config.discord_token.clone(), intents)
+        .await
+        .expect("Error creating client");
+      
+      let mut role_handler_consumer = ConsumerRunner::new(
+        store.config.rabbitmq_uri.clone(),
+        "discord_roles".to_owned(),
+        "discord_roles".to_owned(),
+        Arc::new(RoleHandler::new(client).await),
+      ).await;
+
+      role_handler_consumer.start().await.unwrap();
+    });
+
     // start listening for events by starting a single shard
     let mut client = client.lock().await;
     if let Err(error) = client.start().await {

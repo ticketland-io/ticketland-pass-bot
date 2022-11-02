@@ -1,23 +1,22 @@
-use std::sync::Arc;
 use eyre::Result;
+use serenity::prelude::*;
 use async_trait::async_trait;
 use lapin::{
   message::{Delivery},
 };
 use amqp_helpers::core::types::Handler;
 use crate::{
-  utils::store::Store,
   models::role_assignment::RoleAssignment,
 };
 
 pub struct RoleHandler {
-  _store: Arc<Store>,
+  client: Client,
 }
 
 impl RoleHandler {
-  pub async fn new(_store: Arc<Store>) -> Self {
+  pub async fn new(client: Client) -> Self {
     Self {
-      _store,
+      client,
     }
   }
 }
