@@ -1,5 +1,6 @@
 use std::sync::Arc;
 use eyre::{Result, Report};
+use tracing::info;
 use serenity::prelude::*;
 use async_trait::async_trait;
 use lapin::{
@@ -25,7 +26,7 @@ impl RoleHandler {
 #[async_trait]
 impl Handler<RoleAssignment> for RoleHandler {
   async fn handle(&self, msg: RoleAssignment, _: &Delivery) -> Result<()> {
-    println!("Assigning roles to {} in guild {}", &msg.discord_uid, &msg.guild_id);
+    info!("Assigning roles to {} in guild {}", &msg.discord_uid, &msg.guild_id);
     let guild_id = msg.guild_id.parse::<u64>()?;
     let discord_uid = msg.discord_uid.parse::<u64>()?;
     let roles: Vec<u64> = msg.roles.into_iter()
@@ -42,6 +43,7 @@ impl Handler<RoleAssignment> for RoleHandler {
       .await?;
     }
 
+    info!("Roles Assigned to {} in guild {}", &msg.discord_uid, &msg.guild_id);
     Ok(())
   }
 }
