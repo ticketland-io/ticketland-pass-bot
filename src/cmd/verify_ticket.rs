@@ -7,6 +7,9 @@ use serenity::{
     application::interaction::application_command::{ApplicationCommandInteraction},
   },
 };
+use ticketland_crypto::{
+  asymetric::ed25519,
+};
 use crate::utils::store::Store;
 
 pub struct VerifyCmd {
@@ -25,13 +28,16 @@ impl VerifyCmd {
   pub async fn run(&self, _: &Context, cmd: &ApplicationCommandInteraction) -> Result<String> {
     let guild_id = cmd.guild_id.ok_or(Report::msg("error"))?;
     let discord_uid = cmd.user.id;
+    let code_challenge = format!("{}:{}", discord_uid, guild_id);
+    let sig = ed25519::sign(code_challenge.as_bytes(), self.store.config.signer_keypair.as_bytes())?;
 
     Ok(format!(
-      "{}/verify?&discord_uid={}&guild_id={}&channel_id={}",
+      "{}/verify?&discord_uid={}&guild_id={}&channel_id={}&sig={}",
       self.store.config.ticketland_pass_dapp,
       discord_uid,
       guild_id.to_string(),
       cmd.channel_id.to_string(),
+      sig.to_string(),
     ))
   }
   
