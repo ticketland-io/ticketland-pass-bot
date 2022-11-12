@@ -4177,7 +4177,7 @@ dependencies = [
 
 [[package]]
 name = "ticketland-pass-bot"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "amqp-helpers",
  "async-trait",
@@ -4196,8 +4196,8 @@ dependencies = [
 
 [[package]]
 name = "ticketland-pass-common-data"
-version = "0.2.2"
-source = "git+https://github.com/ticketland-io/ticketland-pass-common#28b4f7280d1abbc2d40276afe0594b799485e712"
+version = "0.2.3"
+source = "git+https://github.com/ticketland-io/ticketland-pass-common#9c0f4297164f5230582f77d3f14125120abd5068"
 dependencies = [
  "chrono",
  "diesel",
