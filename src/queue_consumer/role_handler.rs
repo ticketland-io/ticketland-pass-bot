@@ -27,8 +27,10 @@ impl RoleHandler {
 impl Handler<RoleAssignment> for RoleHandler {
   async fn handle(&self, msg: RoleAssignment, _: &Delivery) -> Result<()> {
     info!("Assigning roles to {} in guild {}", &msg.discord_uid, &msg.guild_id);
+
     let guild_id = msg.guild_id.parse::<u64>()?;
     let discord_uid = msg.discord_uid.parse::<u64>()?;
+    
     let roles: Vec<u64> = msg.roles.into_iter()
     .map(|r| r.parse::<u64>().map_err(|_| Report::msg("Invalid role id")))
     .filter(|r| r.is_ok())

@@ -2,7 +2,6 @@ use std::{
   env,
   sync::Arc,
 };
-use actix::prelude::*;
 use tracing::error;
 use tokio::sync::Mutex;
 use serenity::prelude::*;
@@ -13,7 +12,8 @@ use ticketland_pass_bot::{
   queue_consumer::role_handler::RoleHandler,
 };
 
-fn main() {
+#[tokio::main]
+async fn main() {
   if env::var("ENV").unwrap() == "development" {
     dotenv::from_filename(".env").expect("cannot load env from a file");
   }
@@ -23,45 +23,37 @@ fn main() {
   // `RUST_LOG` to `debug`.
   tracing_subscriber::fmt::init();
 
-  let system = System::new();
+  let store = Arc::new(Store::new().await);
 
-  let execution = async {
-    let store = Arc::new(Store::new().await);
+  let intents = GatewayIntents::GUILDS
+  | GatewayIntents::GUILD_MESSAGES
+  | GatewayIntents::MESSAGE_CONTENT;
 
-    let intents = GatewayIntents::GUILDS
-    | GatewayIntents::GUILD_MESSAGES
-    | GatewayIntents::MESSAGE_CONTENT;
-  
-    let handler = Handler::new(Arc::clone(&store));
+  let handler = Handler::new(Arc::clone(&store));
+  let client = Client::builder(store.config.discord_token.clone(), intents)
+    .event_handler(handler)
+    .await
+    .expect("Error creating client");
+  let client = Arc::new(Mutex::new(client));
+
+  tokio::spawn(async move {
     let client = Client::builder(store.config.discord_token.clone(), intents)
-      .event_handler(handler)
       .await
       .expect("Error creating client");
-    let client = Arc::new(Mutex::new(client));
-  
-    tokio::spawn(async move {
-      let client = Client::builder(store.config.discord_token.clone(), intents)
-        .await
-        .expect("Error creating client");
-      
-      let mut role_handler_consumer = ConsumerRunner::new(
-        store.config.rabbitmq_uri.clone(),
-        "discord_roles".to_owned(),
-        "discord_roles".to_owned(),
-        Arc::new(RoleHandler::new(client).await),
-      ).await;
+    
+    let mut role_handler_consumer = ConsumerRunner::new(
+      store.config.rabbitmq_uri.clone(),
+      "discord_roles".to_owned(),
+      "discord_roles".to_owned(),
+      Arc::new(RoleHandler::new(client).await),
+    ).await;
 
-      role_handler_consumer.start().await.unwrap();
-    });
+    role_handler_consumer.start().await.unwrap();
+  });
 
-    // start listening for events by starting a single shard
-    let mut client = client.lock().await;
-    if let Err(error) = client.start().await {
-      error!("An error occurred while running the client: {:?}", error);
-    }
-  };
-
-  let arbiter = Arbiter::new();
-  arbiter.spawn(execution);
-  system.run().expect("Could not run the actix-rt system");
+  // start listening for events by starting a single shard
+  let mut client = client.lock().await;
+  if let Err(error) = client.start().await {
+    error!("An error occurred while running the client: {:?}", error);
+  }
 }

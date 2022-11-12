@@ -7,17 +7,12 @@ use serenity::{
     application::interaction::application_command::{ApplicationCommandInteraction},
   },
 };
-use common_data::{
-  helpers::{send_read, send_write},
-};
 use ticketland_pass_common_data::{
   models::{
     account::Account,
+    guild_admin::GuildAdmin,
     guild::Guild,
-  },
-  repositories::{
-    guild::add_user_guild,
-    account::{create_account, read_account_by_discord_uid},
+    reg_session::NewRegSession,
   },
 };
 use ticketland_crypto::utils::id::Id;
@@ -37,14 +32,8 @@ impl RegisterCmd {
   }
 
   async fn is_registered(&self, discord_uid: String) -> Result<()> {
-    let (query, db_query_params) = read_account_by_discord_uid(discord_uid);
-
-    let account = send_read(
-      Arc::clone(&self.store.neo4j),
-      query,
-      db_query_params,
-    ).await
-    .map(TryInto::<Account>::try_into)??;
+    let mut postgres = self.store.postgres.lock().await;
+    let account = postgres.read_account_by_discord_uid(discord_uid).await?;
 
     // If eutopic_uid exists it means that user has already registered
     if account.eutopic_uid.is_some() {
@@ -56,27 +45,31 @@ impl RegisterCmd {
 
   async fn create_new_account(&self, discord_uid: String) -> Result<String> {
     let session_id = Id::new();
-    let (query, db_query_params) = create_account(discord_uid, session_id.to_string());
-    
-    send_write(
-      Arc::clone(&self.store.neo4j),
-      query,
-      db_query_params,
-    ).await?;
+    let mut postgres = self.store.postgres.lock().await;
 
+    let account = Account {
+      discord_uid: discord_uid.clone(),
+      ..Default::default()
+    };
+    let reg_session = NewRegSession {
+      account_id: discord_uid.clone(),
+      session_id: session_id.clone(),
+    };
+
+    postgres.create_account(account, reg_session).await?;
+    
     Ok(session_id.to_string())
   }
   
   async fn add_guild(&self, discord_uid: String, guild: Guild) -> Result<()> {
-    let (query, db_query_params) = add_user_guild(discord_uid, guild);
-    
-    send_write(
-      Arc::clone(&self.store.neo4j),
-      query,
-      db_query_params,
-    ).await?;
+    let mut postgres = self.store.postgres.lock().await;
+    let guild_admin = GuildAdmin {
+      guild_id: guild.guild_id.clone(),
+      account_id: discord_uid,
+      ..Default::default()
+    };
 
-    Ok(())
+    Ok(postgres.add_user_guild(guild, guild_admin).await?)
   }
 
   /// This will be called by the admin of the Guild. It will basically load the information we need.
@@ -102,7 +95,7 @@ impl RegisterCmd {
     // save guild
     let guild = ctx.http.get_guild(guild_id.0).await?;
     let guild = Guild {
-      id: guild_id.to_string(),
+      guild_id: guild_id.to_string(),
       name: guild.name,
       icon: guild.icon,
       ..Default::default()
