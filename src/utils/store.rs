@@ -1,21 +1,19 @@
-use std::sync::Arc;
-use tokio::sync::Mutex;
-use ticketland_pass_common_data::connection::PostgresConnection;
+use ticketland_pass_common_data::connection_pool::ConnectionPool;
 use super::config::Config;
 
 pub struct Store {
   pub config: Config,
-  pub postgres: Arc<Mutex<PostgresConnection>>,
+  pub pg_pool: ConnectionPool,
 }
 
 impl Store {
   pub async fn new() -> Self {
     let config = Config::new().unwrap();
-    let postgres = Arc::new(Mutex::new(PostgresConnection::new(&config.postgres_uri).await));
+    let pg_pool = ConnectionPool::new(&config.postgres_uri).await;
 
     Self {
       config,
-      postgres,
+      pg_pool,
     }
   }
 }

@@ -32,7 +32,7 @@ impl RegisterCmd {
   }
 
   async fn is_registered(&self, discord_uid: String) -> Result<()> {
-    let mut postgres = self.store.postgres.lock().await;
+    let mut postgres = self.store.pg_pool.connection().await?;
     let account = postgres.read_account_by_discord_uid(discord_uid).await?;
 
     // If eutopic_uid exists it means that user has already registered
@@ -45,7 +45,7 @@ impl RegisterCmd {
 
   async fn create_new_account(&self, discord_uid: String) -> Result<String> {
     let session_id = Id::new();
-    let mut postgres = self.store.postgres.lock().await;
+    let mut postgres = self.store.pg_pool.connection().await?;
 
     let account = Account {
       discord_uid: discord_uid.clone(),
@@ -62,7 +62,7 @@ impl RegisterCmd {
   }
   
   async fn add_guild(&self, discord_uid: String, guild: Guild) -> Result<()> {
-    let mut postgres = self.store.postgres.lock().await;
+    let mut postgres = self.store.pg_pool.connection().await?;
     let guild_admin = GuildAdmin {
       guild_id: guild.guild_id.clone(),
       account_id: discord_uid,
