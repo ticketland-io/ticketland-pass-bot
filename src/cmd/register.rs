@@ -31,16 +31,11 @@ impl RegisterCmd {
     command.name("register").description("Register guild")
   }
 
-  async fn is_registered(&self, discord_uid: String) -> Result<()> {
+  async fn is_registered(&self, discord_uid: String, guild_id: String) -> Result<()> {
     let mut postgres = self.store.pg_pool.connection().await?;
-    let account = postgres.read_account_by_discord_uid(discord_uid).await?;
-
-    // If eutopic_uid exists it means that user has already registered
-    if account.eutopic_uid.is_some() {
-      return Ok(())
-    }
+    postgres.read_guild_admins(discord_uid, guild_id).await?; 
     
-    Err(Report::msg("error"))
+    return Ok(())
   }
 
   async fn create_new_account(&self, discord_uid: String) -> Result<String> {
@@ -86,7 +81,7 @@ impl RegisterCmd {
     }
 
     let guild_id = cmd.guild_id.ok_or(Report::msg("error"))?;
-    if self.is_registered(discord_uid.clone()).await.is_ok() {
+    if self.is_registered(discord_uid.clone(), guild_id.to_string()).await.is_ok() {
       return Ok("You have already registered this Server".to_string())
     }
     
