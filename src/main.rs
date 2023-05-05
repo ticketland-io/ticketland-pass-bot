@@ -41,12 +41,13 @@ async fn main() {
       .await
       .expect("Error creating client");
     
-    let mut role_handler_consumer = ConsumerRunner::new(
+    let role_handler_consumer = ConsumerRunner::new(
       store.config.rabbitmq_uri.clone(),
       "discord_roles".to_owned(),
       "discord_roles".to_owned(),
-      Arc::new(RoleHandler::new(client).await),
-    ).await;
+      1,
+      RoleHandler::new(client).await,
+    ).await.unwrap();
 
     role_handler_consumer.start().await.unwrap();
   });

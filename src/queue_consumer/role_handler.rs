@@ -25,7 +25,7 @@ impl RoleHandler {
 
 #[async_trait]
 impl Handler<RoleAssignment> for RoleHandler {
-  async fn handle(&self, msg: RoleAssignment, _: &Delivery) -> Result<()> {
+  async fn handle(&mut self, msg: RoleAssignment, _: &Delivery, _: i64) -> Result<()> {
     info!("Assigning roles to {} in guild {}", &msg.discord_uid, &msg.guild_id);
 
     let guild_id = msg.guild_id.parse::<u64>()?;
